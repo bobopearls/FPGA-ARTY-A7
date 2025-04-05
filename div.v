@@ -2,7 +2,7 @@
 
 // function: signed sequential divider using a non restoring division algoritm (for 32 bit input and output)
 // top module, div
-// Quitoriano 202206275, CoE 111 ME5
+// Quitoriano 2022*****, CoE 111 ME5
 
 module div(
     input clk, nrst, en,
