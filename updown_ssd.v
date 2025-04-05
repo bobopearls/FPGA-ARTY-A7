@@ -98,6 +98,7 @@ module updown_ssd(
     
 endmodule    
 
+// april 5, 2025 comment: idk why I even did this, but this is very redundant
 module fdiv_1Hz_clk(
     input clk, nrst,
     output clk_1Hz_out
