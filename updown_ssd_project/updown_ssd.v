@@ -1,9 +1,9 @@
-`timescale 1ns/1ps
+
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
 // 
-// Create Date: 28.03.2025 17:21:22
+// Create Date: 27.03.2025 21:37:30
 // Design Name: 
 // Module Name: updown_ssd
 // Project Name: 
@@ -18,37 +18,52 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`timescale 1ns / 1ps
 
 module updown_ssd(
     input clk, nrst, dir, // clk is the 100MHz, reset, dir = 1 count up and 0 is count down
     output segA, segB, segC, segD, segE, segF, segG,
     output reg sel
     );
-    wire clk_1Hz, clk_50Hz;
-    fdiv_1Hz_clk fdiv_1 (.clk(clk), .nrst(nrst), .clk_1Hz_out(clk_1Hz));
-    fdiv_50Hz_clk fdiv_50 (.clk(clk), .nrst(nrst), .clk_50Hz_out(clk_50Hz));
+    
     reg [7:0] count = 8'd0; // 8 bit counter (0-255)
+    wire clk_1Hz, clk_50Hz; // use these as triggers in the if else statements instead of making it a clock
+    fdiv_1Hz_clk div_1Hz(.clk(clk), .nrst(nrst), .clk_1Hz_out(clk_1Hz));
+    fdiv_50Hz_clk div_50Hz (.clk(clk), .nrst(nrst), .clk_50Hz_out(clk_50Hz));
     
     // up and down dir count
-    always@(posedge clk_1Hz or negedge nrst)begin // note that the count has to change for 1 second
-        if(!nrst)
+    reg prev_clk_1Hz;
+    always@(posedge clk or negedge nrst)begin // note that the count has to change for 1 second
+        if(!nrst) begin // if nrst is 0, it is reset
+            prev_clk_1Hz <= 0;
             count <= 8'h00; // reset the count
-        else if (dir && count == 8'hFF)
-            count <= 8'h00; // go back to 0
-        else if (!dir && count == 8'h00)
-            count <= 8'hFF; // decrement / go backwards
-        else if (dir)
-            count <= count + 1; // increment the caount going up
-        else
-            count <= count - 1; // decrement the count going down
+        end else begin 
+            if (clk_1Hz && !prev_clk_1Hz) begin
+                if (dir && count == 8'hFF)
+                    count <= 8'h00; // go back to 0
+                else if (!dir && count == 8'h00)
+                    count <= 8'hFF; // decrement / go backwards
+                else if (dir)
+                    count <= count + 1; // increment the caount going up
+                else
+                    count <= count - 1; // decrement the count going down
+            end
+            prev_clk_1Hz <= clk_1Hz;
+        end
     end
     
+    reg prev_clk_50Hz;
     // flickering changes (similar to how we do clk where we use ~)
-    always@(posedge clk_50Hz or negedge nrst)begin // changes every 20ms
-        if(!nrst)
+    always@(posedge clk or negedge nrst)begin // changes every 20ms
+        if(!nrst) begin
+            prev_clk_50Hz <= 0;
             sel <= 1'b0;
-        else
-            sel <= ~sel; // going back and fourth between the displays
+        end else begin
+            if(clk_50Hz && !prev_clk_50Hz) begin
+                sel <= ~sel; // going back and fourth between the displays
+            end
+            prev_clk_50Hz <= clk_50Hz;
+        end
     end
 
     // selecting what digit (either left or right) to display when sel is either 0 or 1 and what digit (left or right) we will display
@@ -72,8 +87,8 @@ module updown_ssd(
             4'h1: display_seg = 7'b0110000; // only enabling segments B and C
             4'h2: display_seg = 7'b1101101; // enabling A,B,D,E,G
             4'h3: display_seg = 7'b1111001; // enabling A,B,G,C,D
-            4'h4: display_seg = 7'b0110010; // enabling B,C,G,F
-            4'h5: display_seg = 7'b1011010; // A,F,G,C,D
+            4'h4: display_seg = 7'b0110011; // enabling B,C,G,F
+            4'h5: display_seg = 7'b1011011; // A,F,G,C,D
             4'h6: display_seg = 7'b1011111; // all except B are enabled
             4'h7: display_seg = 7'b1110000; // only ABC are enabled
             4'h8: display_seg = 7'b1111111; // enable all
@@ -98,7 +113,6 @@ module updown_ssd(
     
 endmodule    
 
-// april 5, 2025 comment: idk why I even did this, but this is very redundant
 module fdiv_1Hz_clk(
     input clk, nrst,
     output clk_1Hz_out
