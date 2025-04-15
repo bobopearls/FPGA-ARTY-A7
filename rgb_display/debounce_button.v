@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: CoE 111 ME 7
+// Engineer: Quitoriano, Maria Louise
 // 
 // Create Date: 08.04.2025 11:37:26
 // Design Name: 
@@ -26,9 +26,11 @@ module debounce_button(
     output reg button_out // debounced output
     );
     
-    parameter DEBOUNCE_COUNT = 20'd1_000_000; // adjust the count for debounce delay
+    parameter DEBOUNCE_COUNT = 20'd5_000_000; // adjust the count for debounce delay (double check this if we need to change this for 50ms)
+    // 50ms is nicer for the button press (standard is 50ms or 100ms)
+    // 50ms uses 5_000_000 and then 100ms would use 10_000_000
     
-    reg [15:0] count;
+    reg [19:0] count;
     reg button_sync_0, button_sync_1; // synch input and the clock
     
     // sync the clock and the button input to eliminate timing issues
@@ -40,6 +42,19 @@ module debounce_button(
             button_sync_0 <= button_in;
             button_sync_1 <= button_sync_0; // make sure that these are updated at the same clock cycle
         end 
+    end
+    
+    // edge detection
+    reg button_out_prev;
+    wire button_pressed;
+    
+    assign button_pressed = button_out && !button_out_prev;
+    
+    always @(posedge clk or negedge nrst) begin
+        if (!nrst)
+            button_out_prev <= 0;
+        else
+            button_out_prev <= button_out;
     end
     
     // debouncing logic
