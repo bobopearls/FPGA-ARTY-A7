@@ -3,8 +3,8 @@
 
 module four_bit_lcd_init(
   input clk, nrst, 
-  output [3:0] DB_init, // we use DB7 to DB 4 {DB7, DB6, DB5, DB4}
-  output RS, RW, E // these are outputs that are also needed to send out
+  output reg [3:0] DB_init, // we use DB7 to DB 4 {DB7, DB6, DB5, DB4}
+  output reg RS, RW, E // these are outputs that are also needed to send out
 );
     // timing parameters for readability with the 100MHz board clock
     parameter count_15ms = 1_500_000; // these are the wait times for the init set up
@@ -43,23 +43,160 @@ module four_bit_lcd_init(
     
     // additional important states:
     parameter S_check_BF = 5'd18; // this state will check the BUSY FLAG, (usually stored in the DB7 | section 3.1.9 | if DB7 = 1, its busy)
-    
+     
     // start of how the states will work together
     reg [20:0] count;
+    reg [4:0] S_after_BF; // need to show the state after BF for the checking
     reg [4:0] curr_state, next_state; // our states are 5 bits total
-    always@(posedge clk or negedge nrst)begin
+    
+    always@(posedge clk or negedge nrst)begin // sequential decrementing
         if(!nrst)begin
             curr_state <= S_idle;
             count <= 0;
             // implement a decrement counter here. so when a state sends out a count number, it will decrement until it reaches 0 (instead of increment)
         end else begin
-            if(count == 0) begin
+            if(count > 0)begin
+                count <= count - 1; // decrement here. we decrement first before we check the next state
             end
+            
+            if(count == 0) begin
+                curr_state <= next_state; // if the decrement is already 0, go to the next state bc that means its done 
+            end else begin
+                curr_state <= curr_state; // do not change the state. stay in the current state
+            end 
         end
-  end
+    end
+   
+    always@(*)begin
+        // combinational logic for the states
+        case(curr_state)
+            S_idle: begin
+                DB_init <= 4'b0000; // do not send out any data bits yet
+                next_state <= S_func_set_1; // this happens after the count decrements
+                count <= count_15ms; // send this out, it will do the count and then if it is 0, that is when we go to the next state
+            end
+            
+            S_func_set_1: begin
+                DB_init <= 4'b0011;
+                next_state <= S_wait_4_1ms;
+                count <= count_40us;
+            end
+            
+            S_wait_4_1ms: begin
+                DB_init <= 4'b0000; // do not send out data at this time
+                next_state <= S_func_set_2;
+                count <= count_4_1ms;
+            end
+            
+            S_func_set_2: begin
+                DB_init <= 4'b0011;
+                next_state <= S_wait_100us;
+                count <= count_40us;
+            end
+            
+            S_wait_100us: begin
+                DB_init <= 4'b0000;
+                next_state <= S_func_set_3;
+                count <= count_100us;
+            end
+            
+            S_func_set_3: begin
+                DB_init <= 4'b0011;
+                next_state <= S_func_set_4;
+                count <= count_40us;
+            end
+            
+            S_func_set_4: begin
+                DB_init <= 4'b0010;
+                next_state <= S_func_set_5_upper;
+                count <= count_40us;
+            end
+            
+            S_func_set_5_upper: begin
+                DB_init <= 4'b0010;
+                next_state <= S_func_set_5_lower;
+                count <= count_40us;
+            end
+            
+            S_func_set_5_lower: begin
+                DB_init <= 4'b1000; // 10xx
+                next_state <= S_display_off_upper;
+                count <= count_40us;
+            end
+            
+            S_check_BF: begin
+                RS <= 0; // select DB7 reg to be read
+                RW <= 1; // read operation
+                E <= 1; // set E to 1 to check RW to see if we are reading or writing
+                
+                if(DB_init[3] == 1) begin
+                    next_state <= S_check_BF; // to itself
+                end else begin
+                    RW <= 0;
+                    E <= 0; //resets
+                    next_state <= S_after_BF;
+                end
+                count <= count_40us;
+            end
+            
+            S_display_off_upper: begin // can start checking BF flag here
+                DB_init <= 4'b0000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_display_off_lower;
+                count <= count_40us;
+            end
+            
+            S_display_off_lower: begin
+                DB_init <= 4'b1000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_clear_disp_upper;
+                count <= count_40us;
+            end
+            
+            S_clear_disp_upper: begin
+                DB_init <= 4'b0000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_clear_disp_lower;
+                count <= count_40us;
+            end
+            
+            S_clear_disp_lower: begin
+                DB_init <= 4'b1000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_entry_mode_upper;
+                count <= count_15_2ms;
+            end
+            
+            S_entry_mode_upper: begin
+                DB_init <= 4'b0000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_entry_mode_lower;
+                count <= count_40us;
+            end
+            
+            S_entry_mode_lower: begin
+                DB_init <= 4'b0110; // increment cursor and display shift
+                next_state <= S_check_BF;
+                S_after_BF <= S_disp_on_upper;
+                count <= count_40us;
+            end
+           
+            S_disp_on_upper: begin
+                DB_init <= 4'b0000;
+                next_state <= S_check_BF;
+                S_after_BF <= S_disp_on_lower;
+                count <= count_40us;
+            end
+            
+            S_disp_on_lower: begin
+                DB_init <= 4'b1111;
+                next_state <= S_check_BF;
+                S_after_BF <= S_init_done;
+                count <= count_40us;
+            end
+            
+        endcase
+            
+        
+    end
 endmodule
-
-  
-  
-  
-  
