@@ -3,7 +3,7 @@
 
 module four_bit_lcd_init(
   input clk, nrst, 
-  output DB7, DB6, DB5, DB4, // we use DB7 to DB 4 {DB7, DB6, DB5, DB4}
+  input DB7, DB6, DB5, DB4, // we use DB7 to DB 4 {DB7, DB6, DB5, DB4} // inout because there are reads and writes
   output RS, RW, E // these are outputs that are also needed to send out
 );
     reg [3:0] DB_init;
@@ -57,31 +57,23 @@ module four_bit_lcd_init(
     
     // additional important states:
     parameter S_check_BF = 5'd20; // this state will check the BUSY FLAG, (usually stored in the DB7 | section 3.1.9 | if DB7 = 1, its busy)
-     
+    parameter S_exit_init = 5'd21;
     // start of how the states will work together
     reg [20:0] count;
     reg [4:0] S_after_BF; // need to show the state after BF for the checking
+    reg done_write; // tells us we should not go back to the idle state
+    reg start_timer_bit; // bit used to start the actual sending of initialization bits (issue was we skipped over state 1 and 2)
+    reg count_sent_bit; // need a separate bit to tell the states that their count conditions for decrement were sent over already
     reg [4:0] curr_state, next_state; // our states are 5 bits total
     
     always@(posedge clk or negedge nrst)begin // sequential decrementing
         if(!nrst)begin
             curr_state <= S_idle;
             count <= 0;
-            RS_init <= 0;
-            RW_init <= 0;
-            E_init <= 0;
-            // implement a decrement counter here. so when a state sends out a count number, it will decrement until it reaches 0 (instead of increment)
+            start_timer_bit <= 0;
+            count_sent_bit <= 0;
         end else begin
-            
-            if(count > 0)begin
-                count <= count - 1; // decrement here. we decrement first before we check the next state
-            end
-            
-            if(count == 0) begin
-                curr_state <= next_state; // if the decrement is already 0, go to the next state bc that means its done 
-            end else begin
-                curr_state <= curr_state; // do not change the state. stay in the current state
-                
+            if(!count_sent_bit) begin
                 case(next_state)
                     S_idle:             count <= count_15ms;
                     S_func_set_1:       count <= count_40us;
@@ -105,9 +97,27 @@ module four_bit_lcd_init(
                     S_check_BF:         count <= count_40us;
                     default:            count <= 0;
                 endcase
-            end 
-        end
+                count_sent_bit <= 1; // the count for the specific state has already been sent
+                
+            end else if (count > 0 && !count_sent_bit) begin
+                count <= count - 1;
+            end else begin
+                // if count_sent_bit is 1
+                curr_state <= next_state;
+                count_sent_bit <= 0; // reset
+                
+            end
+        end 
     end
+    
+    // because now we have to read from DB7, we set it as an inout wire and then check the condition if it is R/W
+//    reg DB7_read;
+
+//    always @(posedge clk) begin
+//        if (RW_init && E_init) begin
+//            DB7_read <= DB7; // DB7 is inout and externally driven by LCD
+//        end
+//    end
    
     always@(*)begin
         // Default outputs
@@ -120,8 +130,12 @@ module four_bit_lcd_init(
         // combinational logic for the states
         case(curr_state)
             S_idle: begin
-                DB_init = 4'b0000; // do not send out any data bits yet
-                next_state = S_func_set_1; // this happens after the count decrements
+                if(done_write) begin
+                    next_state = S_write_data_upper;
+                end else begin
+                    DB_init = 4'b0000; // do not send out any data bits yet
+                    next_state = S_func_set_1; // this happens after the count decrements
+                end
                 //count = count_15ms; // send this out, it will do the count and then if it is 0, that is when we go to the next state
             end
             
@@ -260,9 +274,19 @@ module four_bit_lcd_init(
                 RS_init = 1;
                 RW_init = 0;
                 E_init = 0;
-                DB_init = 4'b1100;
-                next_state = S_idle;
+                DB_init = 4'b0001;
+                done_write = 1;
+                next_state = S_check_BF;
+                S_after_BF = S_idle;
             end
+            
+//            S_exit_init: begin
+//                RS_init = 0;
+//                RW_init = 0;
+//                E_init = 0;
+//                next_state = S_exit_init;
+                
+//            end
             
             default: begin
                 RS_init = 0;
