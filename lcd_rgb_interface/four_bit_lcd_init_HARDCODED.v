@@ -1,7 +1,8 @@
 // LCD initialization with hardcoded text on two lines
 // Line 1: "COLOR MODE"
 // Line 2: "TYPE MODE"
-
+// GROUNDED THE RW PORT AND ALSO DID NOT IMPLEMENT BF SINCE WE ARE DOING WRITES ONLY
+// Changes made: Instead of sending the DB bits and the E bits together, we have to separate them and pulse them separately as well
 module four_bit_lcd_init(
   input clk, nrst, 
   output DB7, DB6, DB5, DB4,
@@ -21,7 +22,8 @@ module four_bit_lcd_init(
     parameter count_15ms = 1_500_000;
     parameter count_4_1ms = 410_000;
     parameter count_100us = 10_000;
-    parameter count_15_2ms = 1_520_000;
+    //parameter count_15_2ms = 1_520_000;
+    parameter count_7_6ms = 76_000;
     //parameter count_40us = 4_000; //change this now that we have the split with pulses
     parameter count_20us = 2_000; // set and then pulse add up to 40us total
 
@@ -94,6 +96,23 @@ module four_bit_lcd_init(
     parameter S_write_line2_lower_pulse = 6'd47;
     
     parameter S_complete                = 6'd48;
+    
+    // added states because we are supposed to pulse from high to low SEPARATELY from sending data
+    parameter S_func_set_3_pulse_low = 6'd49;
+    parameter S_func_set_4_pulse_low = 6'd50;
+    parameter S_func_set_5_upper_pulse_low = 6'd51;
+    parameter S_func_set_5_lower_pulse_low = 6'd52;
+    parameter S_display_off_upper_pulse_low = 6'd53;
+    parameter S_display_off_lower_pulse_low = 6'd54;
+    parameter S_clear_disp_upper_pulse_low = 6'd55;
+    parameter S_entry_mode_upper_pulse_low = 6'd56;
+    parameter S_entry_mode_lower_pulse_low = 6'd57;
+    parameter S_disp_on_upper_pulse_low = 6'd58;
+    parameter S_disp_on_lower_pulse_low = 6'd59;
+    parameter S_set_line1_addr_upper_pulse_low = 6'd60;
+    parameter S_set_line1_addr_lower_pulse_low = 6'd61;
+    parameter S_clear_disp_lower_pulse_low = 6'd62;
+
     // Character data for "COLOR MODE" and "TYPE MODE"
     reg [7:0] line1_chars [0:9]; // "COLOR MODE"
     reg [7:0] line2_chars [0:8];  // "TYPE MODE"
@@ -142,71 +161,77 @@ module four_bit_lcd_init(
         end else begin
             if(!count_sent_bit) begin
                 case(next_state)
-                    S_idle:                 count <= count_15ms;
-                    S_func_set_1:           count <= count_20us;
-                    S_wait_4_1ms:           count <= count_4_1ms;
-                    S_func_set_2:           count <= count_20us;
-                    S_wait_100us:           count <= count_100us;
-                    S_func_set_3:           count <= count_20us;
-                    S_func_set_4:           count <= count_20us;
-                    S_func_set_5_upper:     count <= count_20us;
-                    S_func_set_5_lower:     count <= count_20us;
-                    S_display_off_upper:    count <= count_20us;
-                    S_display_off_lower:    count <= count_20us;
-                    S_clear_disp_upper:     count <= count_20us;
-                    S_clear_disp_lower:     count <= count_20us;
-                    S_entry_mode_upper:     count <= count_20us;
-                    S_entry_mode_lower:     count <= count_20us;
-                    S_disp_on_upper:        count <= count_20us;
-                    S_disp_on_lower:        count <= count_20us;
-                    S_set_line1_addr_upper: count <= count_20us;
-                    S_set_line1_addr_lower: count <= count_20us;
-                    S_write_line1_upper:    count <= count_20us;
-                    S_write_line1_lower:    count <= count_20us;
-                    S_set_line2_addr_upper: count <= count_20us;
-                    S_set_line2_addr_lower: count <= count_20us;
-                    S_write_line2_upper:    count <= count_20us;
-                    S_write_line2_lower:    count <= count_20us;
-                    //S_Einit_Zeroset:        count <= count_40us;
+                // hardcoding the count (for easier adjustment and also better debugging)
+                    S_idle:                         count <= 15_000_000; // 15 ms
+                    S_func_set_1:                   count <= 4_000;   // 40 us
+                    S_wait_4_1ms:                   count <= 420_000; // 4.1 ms (adjusted to 4.2ms)
+                    S_func_set_2:                   count <= 4_000;   // 40 us
+                    S_wait_100us:                   count <= 10_000;  // 100 us
+                    S_func_set_3:                   count <= 4_000;
+                    S_func_set_4:                   count <= 4_000;
+                    S_func_set_5_upper:             count <= 4_000;
+                    S_func_set_5_lower:             count <= 4_000;
+                    S_display_off_upper:            count <= 4_000;
+                    S_display_off_lower:            count <= 4_000;
+                    S_clear_disp_upper:             count <= 155_000; // 1.52 ms for clear display command
+                    S_clear_disp_lower:             count <= 155_000; // 1.52 ms - both adjusted 
+                    S_entry_mode_upper:             count <= 4_000;
+                    S_entry_mode_lower:             count <= 4_000;
+                    S_disp_on_upper:                count <= 4_000;
+                    S_disp_on_lower:                count <= 4_000;
+                    S_set_line1_addr_upper:         count <= 4_000;
+                    S_set_line1_addr_lower:         count <= 4_000;
+                    S_write_line1_upper:            count <= 4_000;
+                    S_write_line1_lower:            count <= 4_000;
+                    S_set_line2_addr_upper:         count <= 4_000;
+                    S_set_line2_addr_lower:         count <= 4_000;
+                    S_write_line2_upper:            count <= 4_000;
+                    S_write_line2_lower:            count <= 4_000;
                     
-                    // new PULSE conditions
-                    S_func_set_1_pulse:        count <= count_20us;
-                    S_func_set_2_pulse:        count <= count_20us;
-                    S_func_set_3_pulse:        count <= count_20us;
-                    S_func_set_4_pulse:        count <= count_20us;
-                    S_func_set_5_upper_pulse:  count <= count_20us;
-                    S_func_set_5_lower_pulse:  count <= count_20us;
+                    // NEW PULSE HIGH conditions (E = 1)
+                    S_func_set_1_pulse:             count <= 2_000; // 20 us
+                    S_func_set_2_pulse:             count <= 2_000;
+                    S_func_set_3_pulse:             count <= 2_000;
+                    S_func_set_4_pulse:             count <= 2_000;
+                    S_func_set_5_upper_pulse:       count <= 2_000;
+                    S_func_set_5_lower_pulse:       count <= 2_000;
+                    S_display_off_upper_pulse:      count <= 2_000;
+                    S_display_off_lower_pulse:      count <= 2_000;
+                    S_clear_disp_upper_pulse:       count <= 2_000;
+                    S_clear_disp_lower_pulse:       count <= 2_000;
+                    S_entry_mode_upper_pulse:       count <= 2_000;
+                    S_entry_mode_lower_pulse:       count <= 2_000;
+                    S_disp_on_upper_pulse:          count <= 2_000;
+                    S_disp_on_lower_pulse:          count <= 2_000;
+                    S_set_line1_addr_upper_pulse:   count <= 2_000;
+                    S_set_line1_addr_lower_pulse:   count <= 2_000;
+                    S_write_line1_upper_pulse:      count <= 2_000;
+                    S_write_line1_lower_pulse:      count <= 2_000;
+                    S_set_line2_addr_upper_pulse:   count <= 2_000;
+                    S_set_line2_addr_lower_pulse:   count <= 2_000;
+                    S_write_line2_upper_pulse:      count <= 2_000;
+                    S_write_line2_lower_pulse:      count <= 2_000;
                     
-                    S_display_off_upper_pulse: count <= count_20us;
-                    S_display_off_lower_pulse: count <= count_20us;
-                    
-                    S_clear_disp_upper_pulse:  count <= count_20us;
-                    S_clear_disp_lower_pulse:  count <= count_20us;
-                    
-                    S_entry_mode_upper_pulse:  count <= count_20us;
-                    S_entry_mode_lower_pulse:  count <= count_20us;
-                    
-                    S_disp_on_upper_pulse:     count <= count_20us;
-                    S_disp_on_lower_pulse:     count <= count_20us;
-                    
-                    S_set_line1_addr_upper_pulse:  count <= count_20us;
-                    S_set_line1_addr_lower_pulse:  count <= count_20us;
-                    
-                    S_write_line1_upper_pulse:     count <= count_20us;
-                    S_write_line1_lower_pulse:     count <= count_20us;
-                    
-                    S_set_line2_addr_upper_pulse:  count <= count_20us;
-                    S_set_line2_addr_lower_pulse:  count <= count_20us;
-                    
-                    S_write_line2_upper_pulse:     count <= count_20us;
-                    S_write_line2_lower_pulse:     count <= count_20us;
-
-                    default:                count <= 0;
+                    // NEW PULSE LOW conditions (E = 0, to end the cycle)
+                    S_func_set_3_pulse_low:         count <= 2_000;
+                    S_func_set_4_pulse_low:         count <= 2_000;
+                    S_func_set_5_upper_pulse_low:   count <= 2_000;
+                    S_func_set_5_lower_pulse_low:   count <= 2_000;
+                    S_display_off_upper_pulse_low:  count <= 2_000;
+                    S_display_off_lower_pulse_low:  count <= 2_000;
+                    S_clear_disp_upper_pulse_low:   count <= 2_000;
+                    S_entry_mode_upper_pulse_low:   count <= 2_000;
+                    S_entry_mode_lower_pulse_low:   count <= 2_000;
+                    S_disp_on_upper_pulse_low:      count <= 2_000;
+                    S_disp_on_lower_pulse_low:      count <= 2_000;
+                    S_set_line1_addr_upper_pulse_low: count <= 2_000;
+                    S_clear_disp_lower_pulse_low:   count <= 2_000;
+                    default:                        count <= 0;
                 endcase
                 count_sent_bit <= 1;
             end else if (count > 0) begin
                 count <= count - 1;
-            end else begin
+            end else if (count == 0) begin
                 curr_state <= next_state;
                 count_sent_bit <= 0;
             end
@@ -220,214 +245,273 @@ module four_bit_lcd_init(
         E_init = 0;
         next_state = curr_state;
         
+        // separate the sending of data bits, then E_init = 1, and E_init = 0
         case(curr_state)
             S_idle: next_state = S_func_set_1;
             S_func_set_1: begin
-                DB_init = 4'b0011;
-                E_init = 1;
-                RS_init = 0;
+                DB_init = 4'b0011; // send data
+                //E_init = 1;
+                //RS_init = 0;
                 next_state = S_func_set_1_pulse;
             end
             S_func_set_1_pulse: begin
-                DB_init = 4'b0011;
-                RS_init = 0;
-                E_init = 0;
+                //DB_init = 4'b0011; dont need to have this, already done in the previous state
+                //RS_init = 0;
+                E_init = 1; // set pulse high
                 next_state = S_wait_4_1ms;
             end
             S_wait_4_1ms: begin
-                E_init = 0;
+                E_init = 0; // set pulse low
                 next_state = S_func_set_2;
             end
             S_func_set_2: begin
-                DB_init = 4'b0011;
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b0011; // send data
+                //RS_init = 0;
+                //E_init = 1;
                 next_state = S_func_set_2_pulse;
             end
             S_func_set_2_pulse: begin
-                DB_init = 4'b0011;
-                RS_init = 0;
-                E_init = 0;
+                //DB_init = 4'b0011;
+                //RS_init = 0;
+                E_init = 1; // set pulse high
                 next_state = S_wait_100us;
             end
             S_wait_100us: begin
-                E_init = 0;
+                E_init = 0; // set pulse low
                 next_state = S_func_set_3;
             end 
             S_func_set_3: begin
-                DB_init = 4'b0011;
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b0011; // send data
+                //RS_init = 0;
+                //E_init = 1;
                 next_state = S_func_set_3_pulse;
             end
             S_func_set_3_pulse: begin
-                DB_init = 4'b0011;
-                RS_init = 0;
+                //DB_init = 4'b0011;
+                //RS_init = 0;
+                E_init = 1; // set pulse high
+                next_state = S_func_set_3_pulse_low;
+            end
+            S_func_set_3_pulse_low: begin
                 E_init = 0;
                 next_state = S_func_set_4;
             end
             S_func_set_4: begin
-                DB_init = 4'b0010;
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b0010; // send data
+                //RS_init = 0;
+                //E_init = 1;
                 next_state = S_func_set_4_pulse;
             end
             S_func_set_4_pulse: begin
-                DB_init = 4'b0010;
-                RS_init = 0;
-                E_init = 0;
+                //DB_init = 4'b0010;
+                //RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_func_set_4_pulse_low;
+            end
+            S_func_set_4_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_func_set_5_upper;
             end
             S_func_set_5_upper: begin
-                DB_init = 4'b0010;
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b0010; // send data
+                //RS_init = 0;
+                //E_init = 1;
                 next_state = S_func_set_5_upper_pulse;
             end
             S_func_set_5_upper_pulse: begin
-                DB_init = 4'b0010;
-                RS_init = 0;
-                E_init = 0;
+                //DB_init = 4'b0010;
+                //RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_func_set_5_upper_pulse_low;
+            end
+            S_func_set_5_upper_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_func_set_5_lower;
             end
             S_func_set_5_lower: begin
-                DB_init = 4'b1000; // 4-bit mode, 2 lines, 5x7 dots
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b1000; // send data, 4-bit mode, 2 lines, 5x7 dots
+                //RS_init = 0;
+                //E_init = 1;
                 next_state = S_func_set_5_lower_pulse;
             end
             S_func_set_5_lower_pulse: begin
-                E_init = 0;
-                DB_init = 4'b1000; // 4-bit mode, 2 lines, 5x7 dots
-                RS_init = 0;
+                E_init = 1; // pulse high
+                //DB_init = 4'b1000; // 4-bit mode, 2 lines, 5x7 dots
+                //RS_init = 0;
+                next_state = S_func_set_5_lower_pulse_low;
+            end
+            S_func_set_5_lower_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_display_off_upper;
             end
             S_display_off_upper: begin
-                DB_init = 4'b0000;
-                RS_init = 0;
-                E_init = 1;
+                DB_init = 4'b0000; // send data
+//                RS_init = 0;
+//                E_init = 1;
                 next_state = S_display_off_upper_pulse;
             end
             S_display_off_upper_pulse: begin
-                DB_init = 4'b0000;
-                RS_init = 0;
-                E_init = 0;
+//                DB_init = 4'b0000;
+//                RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_display_off_upper_pulse_low;
+            end
+            S_display_off_upper_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_display_off_lower;
             end
             S_display_off_lower: begin
-                E_init = 1;
-                DB_init = 4'b1000;
-                RS_init = 0;
+                //E_init = 1;
+                DB_init = 4'b1000; // send data
+                //RS_init = 0;
                 next_state = S_display_off_lower_pulse;
             end
             S_display_off_lower_pulse: begin
-                E_init = 0;
-                DB_init = 4'b1000;
-                RS_init = 0;
+                E_init = 1; // pulse high
+//                DB_init = 4'b1000;
+//                RS_init = 0;
+                next_state = S_display_off_lower_pulse_low;
+            end
+            S_display_off_lower_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_clear_disp_upper;
             end
             S_clear_disp_upper: begin
-                DB_init = 4'b0000;
-                E_init = 1;
-                RS_init = 0;
+                DB_init = 4'b0000; // send data
+//                E_init = 1;
+//                RS_init = 0;
                 next_state = S_clear_disp_upper_pulse;
             end
             S_clear_disp_upper_pulse: begin
-                DB_init = 4'b0000;
-                E_init = 0;
-                RS_init = 0;
+                ////DB_init = 4'b0000;
+                E_init = 1; // pulse high
+                //RS_init = 0;
+                next_state = S_clear_disp_upper_pulse_low;
+            end
+            S_clear_disp_upper_pulse_low: begin
+                E_init = 0; // pulse low RAHHHHH AYOKO NA MAG HARDCODE
                 next_state = S_clear_disp_lower;
             end
             S_clear_disp_lower: begin
-                DB_init = 4'b0001;
-                E_init = 1;
-                RS_init = 0;
+                DB_init = 4'b0001; // SEND DATA
+//                E_init = 1;
+//                RS_init = 0;
                 next_state = S_clear_disp_lower_pulse;
             end
             S_clear_disp_lower_pulse: begin
-                DB_init = 4'b0001;
-                E_init = 0;
-                RS_init = 0;
-                next_state = S_entry_mode_upper;
+                //DB_init = 4'b0001;
+                E_init = 1; // PULSE HIGH
+                //RS_init = 0;
+                next_state = S_clear_disp_lower_pulse_low;
             end
+            S_clear_disp_lower_pulse_low: begin
+                E_init = 0; // pulse low
+                next_state = S_entry_mode_upper;
+            end 
+            
             S_entry_mode_upper: begin
-                DB_init = 4'b0000;
-                E_init = 1;
-                RS_init = 0;
+                DB_init = 4'b0000; // send data
+//                E_init = 1;
+//                RS_init = 0;
                 next_state = S_entry_mode_upper_pulse;
             end
             S_entry_mode_upper_pulse: begin
-                DB_init = 4'b0000;
-                RS_init = 0;
-                E_init = 0;
+//                DB_init = 4'b0000;
+//                RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_entry_mode_upper_pulse_low;
+            end
+            S_entry_mode_upper_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_entry_mode_lower;
             end
             S_entry_mode_lower: begin
                 DB_init = 4'b0110; // increment cursor, no display shift
-                RS_init = 0;
-                E_init = 1;
+//                RS_init = 0;
+//                E_init = 1;
                 next_state = S_entry_mode_lower_pulse;
             end
-           S_entry_mode_lower_pulse: begin
-                DB_init = 4'b0110; // increment cursor, no display shift
-                RS_init = 0;
-                E_init = 0;
+            S_entry_mode_lower_pulse: begin
+//                DB_init = 4'b0110; // increment cursor, no display shift
+//                RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_entry_mode_lower_pulse_low;
+            end
+            S_entry_mode_lower_pulse_low: begin
+                E_init = 0; // pulse low
                 next_state = S_disp_on_upper;
-           end
+            end
             S_disp_on_upper: begin
                 DB_init = 4'b0000;
-                RS_init = 0;
-                E_init = 1;
+//                RS_init = 0;
+//                E_init = 1;
                 next_state = S_disp_on_upper_pulse;
             end 
             S_disp_on_upper_pulse: begin
-                DB_init = 4'b0000;
-                RS_init = 0;
+//                DB_init = 4'b0000;
+//                RS_init = 0;
+                E_init = 1; // pulse high
+                next_state = S_disp_on_upper_pulse_low;
+            end
+            S_disp_on_upper_pulse_low: begin
                 E_init = 0;
                 next_state = S_disp_on_lower;
             end
             S_disp_on_lower: begin
                 DB_init = 4'b1111; // display on, cursor on, blink on
-                RS_init = 0;
-                E_init = 1;
+//                RS_init = 0;
+//                E_init = 1;
                 next_state = S_disp_on_lower_pulse;
             end
             S_disp_on_lower_pulse: begin
-                DB_init = 4'b1111; // display on, cursor on, blink on
-                RS_init = 0;
-                E_init = 0;
-                next_state = S_set_line1_addr_upper_pulse; // DDRAM line 1
+//                DB_init = 4'b1111; // display on, cursor on, blink on
+//                RS_init = 0;
+                E_init = 1;
+                next_state = S_disp_on_lower_pulse_low; // DDRAM line 1
             end
-//            S_init_done: begin
-//                next_state = S_set_line1_addr_upper;
-//            end
+            S_disp_on_lower_pulse_low: begin
+//                DB_init = 4'b1111; // display on, cursor on, blink on
+//                RS_init = 0;
+                E_init = 0;
+                next_state = S_set_line1_addr_upper; // DDRAM line 1
+            end
+            //////////////////////////////////////////////////////////////////////////
+            // INITIALIZATION COMPLETE AT THE POINT OF THE CODE //////////////////////
+            //////////////////////////////////////////////////////////////////////////
             
             // Set cursor to line 1, position 0 (0x80)
             S_set_line1_addr_upper: begin
-                RS_init = 0; // command mode
+                //RS_init = 0; // command mode
                 DB_init = 4'b1000; // upper nibble of 0x80
-                E_init = 1;
+                //E_init = 1;
                 next_state = S_set_line1_addr_upper_pulse;
             end
             S_set_line1_addr_upper_pulse: begin
-                RS_init = 0; // command mode
-                DB_init = 4'b1000; // upper nibble of 0x80
+                //RS_init = 0; // command mode
+                //DB_init = 4'b1000; // upper nibble of 0x80
+                E_init = 1;
+                next_state = S_set_line1_addr_lower;
+            end 
+            S_set_line1_addr_upper_pulse_low: begin
                 E_init = 0;
                 next_state = S_set_line1_addr_lower;
             end 
             S_set_line1_addr_lower: begin
-                RS_init = 0;
+                //RS_init = 0;
                 DB_init = 4'b0000; // lower nibble of 0x80
-                E_init = 1;
+                //E_init = 1;
                 next_state = S_set_line1_addr_lower_pulse;
             end
             S_set_line1_addr_lower_pulse: begin
-                RS_init = 0;
-                DB_init = 4'b0000; // lower nibble of 0x80
+                //RS_init = 0;
+                //DB_init = 4'b0000; // lower nibble of 0x80
+                E_init = 1;
+                next_state = S_set_line1_addr_lower_pulse_low;
+            end
+            S_set_line1_addr_lower_pulse_low: begin
                 E_init = 0;
                 next_state = S_write_line1_upper;
             end
-            
             // Write characters for line 1 - COLOR MODE
             S_write_line1_upper: begin
                 //E_init = 0;
