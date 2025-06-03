@@ -105,10 +105,10 @@ module send_4bit_nibble_2(
                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000) E_init <= 0; // similar to previous iteration with the states, split enable 
                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000 + 50_000) E_init <= 1;
                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000 + 50_000 + 50_000) E_init <= 0; // then one more
-                else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000 + 50_000 + 50_000 + 20_000) data_bits <= 4'b1000;
-                // accumulate first all of the counts above = 1_360_000
-                else if (E_count < 1_360_000 + 100_000) E_init <= 1;
-                else if (E_count < 1_360_000 + 100_000 + 100_000) E_init <= 0;
+                
+                else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1000;
+                else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
+                else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 
                 // function set complete. continue to DISPLAY OFF:
                 else if(E_count < 1_560_000 + 20_000) data_bits <= 4'b0000;
