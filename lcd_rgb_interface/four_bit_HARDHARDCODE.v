@@ -69,12 +69,17 @@ module send_4bit_nibble_2(
             E_init <= 0;
             data_bits <= 4'b0000;
             done <= 0;
+            counter <= 0;
+            E_count <= 0;
         end else begin
             if(!done) begin // if not done, or if done == 0 
                 if(counter < 10_000_000) begin // wait 100 ms, do not start counting immediately (i think this was the start up problem before)
                     counter <= counter + 1; // implement an increment instead of a decrement counter (easier to keep track of stuff increaseing that decreasing kasi)
                     E_count <= 0;
                     RS_init <= 0; // call everything we need for this process
+                end else begin
+                    done <= 1;
+                    E_count <= 0;
                 end
             end
             else if (counter >= 10_000_000) begin
@@ -331,12 +336,10 @@ module send_4bit_nibble_2(
                 else begin
                     E_init <= 0;
                     counter <= 0;
-                    data_bits <= 4'b0000;;
+                    data_bits <= 4'b0000;
                     done <= 1;
                     RS_init <= 0;
                 end
-                
-                
                 E_count <= E_count +1;             
             end
         end
