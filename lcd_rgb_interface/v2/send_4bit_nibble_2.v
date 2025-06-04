@@ -340,7 +340,8 @@ module send_4bit_nibble_2(
                     done <= 1;
                     RS_init <= 0;
                 end
-                E_count <= E_count +1;             
+                E_count <= E_count +1;
+                counter <= counter + 1; // check if this line works and fixes
             end
         end
     end
