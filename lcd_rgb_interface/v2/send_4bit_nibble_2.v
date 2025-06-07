@@ -153,12 +153,12 @@ module send_4bit_nibble_2(
                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
-                else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) data_bits <= 4'b0011; // LOWER HALF NEXT
+                else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000 + 100_000) data_bits <= 4'b0011; // LOWER HALF NEXT
                 else if (E_count < 11_240_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 11_240_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 
                 // LETTER o
-                else if (E_count < 11_680_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
+                else if (E_count < 11_680_000 + 20_000) data_bits <= 4'b0110; // UPPER HALF FIRST
                 else if (E_count < 11_680_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 11_680_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 11_680_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1111; // LOWER HALF NEXT
@@ -174,7 +174,7 @@ module send_4bit_nibble_2(
                 else if (E_count < 12_120_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 
                 // LETTER o
-                else if (E_count < 12_560_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
+                else if (E_count < 12_560_000 + 20_000) data_bits <= 4'b0110; // UPPER HALF FIRST
                 else if (E_count < 12_560_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 12_560_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 12_560_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1111; // LOWER HALF NEXT
@@ -191,7 +191,7 @@ module send_4bit_nibble_2(
                 
                 // (space) portion
                 // CURRENT ACCUMULATE: 13_440_000
-                else if (E_count < 13_440_000 + 20_000) data_bits <= 4'b0000; // UPPER HALF FIRST
+                else if (E_count < 13_440_000 + 20_000) data_bits <= 4'b0010; // UPPER HALF FIRST
                 else if (E_count < 13_440_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 13_440_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 13_440_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0000; // LOWER HALF NEXT
@@ -203,13 +203,13 @@ module send_4bit_nibble_2(
                 else if (E_count < 13_880_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST 
                 else if (E_count < 13_880_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 13_880_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
-                else if (E_count < 13_880_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0110; // LOWER HALF NEXT
+                else if (E_count < 13_880_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1101; // LOWER HALF NEXT
                 else if (E_count < 13_880_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 13_880_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 
                 // o portion
                 // current accumulate: 14_320_000
-                else if (E_count < 14_320_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
+                else if (E_count < 14_320_000 + 20_000) data_bits <= 4'b0110; // UPPER HALF FIRST
                 else if (E_count < 14_320_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 14_320_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 14_320_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1111; // LOWER HALF NEXT
@@ -288,7 +288,7 @@ module send_4bit_nibble_2(
                 
                 // (space) portion
                 // CURRENT ACCUMULATE: 17_840_000
-                else if (E_count < 17_840_000 + 20_000) data_bits <= 4'b0000; // UPPER HALF FIRST
+                else if (E_count < 17_840_000 + 20_000) data_bits <= 4'b0010; // UPPER HALF FIRST
                 else if (E_count < 17_840_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 17_840_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 17_840_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0000; // LOWER HALF NEXT
@@ -302,14 +302,14 @@ module send_4bit_nibble_2(
                 else if (E_count < 18_280_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
                 else if (E_count < 18_280_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 18_280_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
-                else if (E_count < 18_280_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0110; // LOWER HALF NEXT
+                else if (E_count < 18_280_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1101; // LOWER HALF NEXT
                 else if (E_count < 18_280_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
                 else if (E_count < 18_280_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 
                 // letter o
                 // current accumulate: 18_720_000
-                else if (E_count < 18_720_000 + 20_000) data_bits <= 4'b0100; // UPPER HALF FIRST
-                else if (E_count < 18_720_000 + 20_000 + 100_000) E_init <= 1;
+                else if (E_count < 18_720_000 + 20_000) data_bits = 4'b0110; // UPPER HALF FIRST
+                else if (E_count < 18_720_000 + 20_000 + 100_000) E_init = 1;
                 else if (E_count < 18_720_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
                 else if (E_count < 18_720_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1111; // LOWER HALF NEXT
                 else if (E_count < 18_720_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
@@ -326,12 +326,13 @@ module send_4bit_nibble_2(
                 
                 // letter e
                 // current accumulate: 19_600_000
-                else if (E_count < 19_600_000 + 20_000) data_bits <= 4'b0110; // UPPER HALF FIRST
-                else if (E_count < 19_600_000 + 20_000 + 100_000) E_init <= 1;
-                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                else if (E_count < 19_600_000 + 20_000) data_bits = 4'b0110; // UPPER HALF FIRST
+                else if (E_count < 19_600_000 + 20_000 + 100_000) E_init = 1;
+                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000) E_init = 0;
                 else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b0101; // LOWER HALF NEXT
-                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
-                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init = 1;
+                else if (E_count < 19_600_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init = 0;
+                
                 
                 else begin
                     E_init <= 0;
