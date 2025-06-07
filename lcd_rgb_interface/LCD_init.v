@@ -1,51 +1,4 @@
-Marie
-Add Status
-
-Marie — 6/5/25, 6:43 PM
-hello
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Maria Louise Quitoriano
-// 4-bit Initializaiton for the Dot Matrix LCD Screen
-//////////////////////////////////////////////////////////////////////////////////
-Expand
-message.txt
-32 KB
-## This file is a general .xdc for the Arty A7-35 Rev. D and Rev. E
-## To use it in a project:
-## - uncomment the lines corresponding to used pins
-## - rename the used ports (in each line, after get_ports) according to the top level signal names in the project
-
-## Clock signal
-Expand
-message.txt
-22 KB
-peakysneaky12 — 6/5/25, 7:19 PM
-`timescale 1ns / 1ps
-
-//////////////////////////////////////////////////////////////////////////////////
-// Maria Louise Quitoriano
-// 4-bit Initializaiton for the Dot Matrix LCD Screen
-//////////////////////////////////////////////////////////////////////////////////
-Expand
-marie.v
-31 KB
-peakysneaky12 — Yesterday at 10:13 PM
-hello marie, just wanna ask lang
-diba tom Jan 7 11:59 pm is the deadline for documentation
-Marie — 12:47 AM
-Hello!! Slr yes june 7
-Basically today HAHHAHA
-slr finished a 192 paper (sobrang clutch)
-peakysneaky12 — 2:20 AM
-ah np, sorry if i botherd u on your paper
-thank you for the response
-﻿
-peakysneaky12
-sneakypeaky5300
- 
-`timescale 1ns / 1ps
-
 //////////////////////////////////////////////////////////////////////////////////
 // Maria Louise Quitoriano
 // 4-bit Initializaiton for the Dot Matrix LCD Screen
@@ -79,7 +32,7 @@ sneakypeaky5300
 // progress and the next instruction will not be accepted until BF is set to "0". If the display is written while BF = 1,
 // abnormal operation will occur.
 // The BF status should be checked before each write operation
-module marie(
+module LCD_init(
     input wire clk, nrst,
     output reg RS_init, E_init,
     //output DB7, DB6, DB5, DB4 // these outputs will be sent over to the LCD, check constraints later
@@ -135,194 +88,71 @@ module marie(
                 end 
                 
                 else if (counter >= 10_000_000) begin
-                    if (E_count < 20000) begin        //wait 200us before 1st E_init
-                        data_bits = 4'b0011;
-                    end 
-
-                    else if (E_count < 100000) begin    // on E_init for 1ms                      // PULSE EN SIGNAL
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 100000 + 600000) begin    // off E_init for 6ms               // WAIT MORE THAN 4.1MS
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 100000 + 600000 + 100000) begin    // turn it ON again after 1ms                      
-                        E_init = 1'b1;                                                                                    
-                    end
-
-                    else if (E_count < 100000 + 600000 + 100000 + 100000) begin    // turn it OFF for 1ms          // WAIT FOR MORE THAN 100us       
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 100000 + 600000 + 100000 + 100000 + 100000) begin   // on E_init for 1ms                          
-                        E_init = 1'b1;                                                                                
-                    end
-
-                    else if (E_count < 100000 + 600000 + 100000 + 100000 + 100000 + 120000) begin    // turn it OFF for 1.2ms           
-                        E_init = 1'b0;
-                    end
-
-
-                    // FUNCTION SET (SET INTERFACE TO 4-BIT -- SET N and F)
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    else if (E_count < 1_120_000 + 20_000) begin    // SEND 0010 after 200 us          
-                        data_bits = 4'b0010;
-                    end
-
-                    else if (E_count < 1120000 + 20000 + 50000) begin    //wait 100ns before triggering the EN signal                          // PULSE EN SIGNAL
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 1120000 + 20000 + 50000 + 50000) begin    // turn ON EN signal for 1ms before turning it off       
-                        E_init = 1'b0;
-                    end
-                    
-                    else if (E_count < 1120000 + 20000 + 50000 + 50000 + 50000) begin    //wait 100ns before triggering the EN signal                          // PULSE EN SIGNAL
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 1120000 + 20000 + 50000 + 50000 + 50000 + 50000) begin    // turn ON EN signal for 1ms before turning it off       
-                        E_init = 1'b0;
-                    end
-
-
-                    else if (E_count < 1120000 + 20000 + 100000 + 100000 + 20000) begin    // SEND 1000 after 200us   (NFxx = 1000)      
-                        data_bits = 4'b1000;
-                    end
-
-                    else if (E_count < 1120000 + 20000 + 100000 + 100000 + 20000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 1120000 + 20000 + 100000 + 100000 + 20000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-                    // DISPLAY OFF
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    else if (E_count < 1560000 + 20000) begin    // SEND 0000 after 200us       
-                        data_bits = 4'b0000;
-                    end
-
-                    else if (E_count < 1560000 + 20000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 1560000 + 20000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 1560000 + 20000 + 100000 + 100000 + 20000) begin    // SEND 1000 after 200us    
-                        data_bits = 4'b1000;
-                    end
-
-                    else if (E_count < 1560000 + 20000 + 100000 + 100000 + 20000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 1560000 + 20000 + 100000 + 100000 + 20000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-                    // CLEAR DISPLAY
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    else if (E_count < 2000000 + 2000000) begin    // SEND 0000 after 20ms       
-                        data_bits = 4'b0000;
-                    end
-
-                    else if (E_count < 2000000 + 2000000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 2000000 + 2000000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 2000000 + 2000000 + 100000 + 100000 + 2000000) begin    // SEND 0001 after 20ms    
-                        data_bits = 4'b0001;
-                    end
-
-                    else if (E_count < 2000000 + 2000000 + 100000 + 100000 + 2000000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 2000000 + 2000000 + 100000 + 100000 + 2000000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-
-
-                    // ENTRY MODE SET
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    else if (E_count < 6_400_000 + 2000000) begin    // SEND 0000 after 20ms       
-                        data_bits = 4'b0000;
-                    end
-
-                    else if (E_count < 6400000 + 2000000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 6400000 + 2000000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 6400000 + 2000000 + 100000 + 100000 + 2000000) begin    // SEND 0111 after 20ms    (0  1  I/D  S)
-                        data_bits = 4'b0110;
-                    end
-
-                    else if (E_count < 6400000 + 2000000 + 100000 + 100000 + 2000000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 6400000 + 2000000 + 100000 + 100000 + 2000000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-                    // DISPLAY ON
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    else if (E_count < 10800000 + 20000) begin    // SEND 0000 after 200us       
-                        data_bits = 4'b0000;
-                    end
-
-                    else if (E_count < 10800000 + 20000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 10800000 + 20000 + 100000 + 100000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-
-                    else if (E_count < 10800000 + 20000 + 100000 + 100000 + 20000) begin    // SEND 1111 after 200us    (1  1  C  B) 1111_0100_1110_0100
-                        data_bits = 4'b1110;
-                    end
-
-                    else if (E_count < 10800000 + 20000 + 100000 + 100000 + 20000 + 100000) begin   //wait 100ns before triggering the EN signal       // PULSE EN SIGNAL     
-                        E_init = 1'b1;
-                    end
-
-                    else if (E_count < 10800000 + 20000 + 100000 + 100000 + 20000 + 100000 + 80000) begin   // turn ON EN signal for 1ms before turning it off     
-                        E_init = 1'b0;
-                    end
-                    else if (E_count < 10800000 + 20000 + 100000 + 100000 + 20000 + 100000 + 80000 + 20000) begin   // turn ON EN signal for 1ms before turning it off     
-                        RS_init = 1'b1;
-                        //counter = 0;
-                        //E_count = 0;
-                        //init_done = 1;
-                    end
-                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                 //counter = counter + 1; we actually dont need this since the rest of the code is E_count
+                //  E_count = E_count + 1; move down
+                 // Note: that the timing parameters are now not exactly the same as the previous attempts because of the non-idealities in timing diagrams
+                 // now this is where we start the sending out of the data bits and the enable pulse bits (with proper timing)
+                 if(E_count < 20_000) data_bits <= 4'b0011; // send data bits | no need to actually reset it back to 0 since it need to pulse only
+                 else if (E_count < 100_000) E_init <= 1; // pulse high
+                 else if (E_count < 100_000 + 600_000) E_init <= 0; // pulse low
+                 // repeat this pattern for the rest of the hard coding
+                 else if (E_count < 100_000 + 600_000 + 100_000) E_init <= 1;  // do it again
+                 else if (E_count < 100_000 + 600_000 + 100_000 + 100_000) E_init <= 0; 
+                 else if (E_count < 100_000 + 600_000 + 100_000 + 100_000 + 100_000) E_init <= 1;
+                 else if (E_count < 100_000 + 600_000 + 100_000 + 100_000 + 100_000 + 100_000 + 120_000) E_init <= 0;
+                 // so, we are adding around 100_000 to the count if we are enabling bits
+                 // first round of sending bits, complete
+                 
+                 // count accumulated: 100_000 + 600_000 + 100_000 + 100_000 + 100_000 + 100_000 + 20_000 = 1_120_000 | use so that its easier
+                 // the FUNCTION SET portion that lets our 8-bit become a 4-bit thingy (N and F bits are set here)
+                 else if (E_count < 1_120_000 + 20_000) data_bits <= 4'b0010; 
+                 else if (E_count < 1_120_000 + 20_000 + 50_000) E_init <= 1;
+                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000) E_init <= 0; // similar to previous iteration with the states, split enable 
+                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000 + 50_000) E_init <= 1;
+                 else if (E_count < 1_120_000 + 20_000 + 50_000 + 50_000 + 50_000 + 50_000) E_init <= 0; // then one more
+                 
+                 else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1000;
+                 else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
+                 else if (E_count < 1_120_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                 
+                 // function set complete. continue to DISPLAY OFF:
+                 else if(E_count < 1_560_000 + 20_000) data_bits <= 4'b0000;
+                 else if(E_count < 1_560_000 + 20_000 + 100_000) E_init <= 1;
+                 else if(E_count < 1_560_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                 else if(E_count < 1_560_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1000;
+                 else if(E_count < 1_560_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1; 
+                 else if(E_count < 1_560_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                 
+                 // display off complete, continue to clear display
+                 // count accumulate; 2_000_000
+                 else if (E_count < 2_000_000 + 2_000_000) data_bits <= 4'b0000;
+                 else if (E_count < 2_000_000 + 2_000_000 + 100_000) E_init <= 1;
+                 else if (E_count < 2_000_000 + 2_000_000 + 100_000 + 100_000) E_init <= 0;
+                 else if (E_count < 2_000_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000) data_bits  <= 4'b0001;
+                 else if (E_count < 2_000_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000 + 100_000) E_init <= 1;
+                 else if (E_count < 2_000_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000 + 100_000 + 100_000) E_init <= 0;
+                
+                 // clear display function complete, proceed with entry mode
+                 // count accumulate : 6_400_000
+                 else if (E_count < 6_400_000 + 2_000_000) data_bits <= 4'b0000;
+                 else if (E_count < 6_400_000 + 2_000_000 + 100_000) E_init <= 1;
+                 else if (E_count < 6_400_000 + 2_000_000 + 100_000 + 100_000) E_init <= 0;
+                 else if (E_count < 6_400_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000) data_bits <= 4'b0110;
+                 else if (E_count < 6_400_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000 + 100_000) E_init <= 1;
+                 else if (E_count < 6_400_000 + 2_000_000 + 100_000 + 100_000 + 2_000_000 + 100_000 + 100_000) E_init <= 0;
+                 
+                 // entry mode complete, proceed with display on
+                 // count accumulate: 10_800_000
+                 else if (E_count < 10_800_000 + 20_000) data_bits <= 4'b0000;
+                 else if (E_count < 10_800_000 + 20_000 + 100_000) E_init <= 1;
+                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000) E_init <= 0;
+                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000) data_bits <= 4'b1111;
+                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000) E_init <= 1;
+                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 80_000) E_init <= 0; // split E_init time and RS (kinda)
+                 else if (E_count < 10_800_000 + 20_000 + 100_000 + 100_000 + 20_000 + 100_000 + 80_000 + 20_000) RS_init <= 1; // YASSSS FINALLY INITIALIZATION COMPLETE
+                
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
                 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 
