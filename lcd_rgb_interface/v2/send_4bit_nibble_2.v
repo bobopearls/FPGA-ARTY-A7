@@ -33,19 +33,19 @@
 // abnormal operation will occur.
 // The BF status should be checked before each write operation
 module send_4bit_nibble_2(
-    input clk, nrst,
-    output RS, E,
-    output DB7, DB6, DB5, DB4 // these outputs will be sent over to the LCD, check constraints later
+    input wire clk, nrst,
+    output reg RS_init, E_init,
+    output reg [3:0] data_bits // idw to individually assign anymore // these outputs will be sent over to the LCD, check constraints later
     );
     
-    reg RS_init, E_init;
-    reg [3:0] data_bits;
-    assign DB7 = data_bits[3];
-    assign DB6 = data_bits[2];
-    assign DB5 = data_bits[1];
-    assign DB4 = data_bits[0];
-    assign RS = RS_init;
-    assign E = E_init;
+    // reg RS_init, E_init;
+    // reg [3:0] data_bits;
+    // assign DB7 = data_bits[3];
+    // assign DB6 = data_bits[2];
+    // assign DB5 = data_bits[1];
+    // assign DB4 = data_bits[0];
+    // assign RS = RS_init;
+    // assign E = E_init;
     
 //    parameter count_15ms = 1_500_000; // these are the wait times for the init set up
 //    parameter count_4_1ms = 410_000;
@@ -56,21 +56,21 @@ module send_4bit_nibble_2(
 //    // i gave up tracking this, im gonan hard code the counts
     
     // so depending on the series of condtions, we output certain stuff 
-    reg [30:0] counter;
-    reg [30:0] E_count; // separate counter for enable and the rest of the logic (this was also another issue)
+    reg [27:0] counter;
+    reg [27:0] E_count; // separate counter for enable and the rest of the logic (this was also another issue)
     // issue I had with this was that the Enable and Commands (data_bits) cannot be outputted at the same time due to non-idealities 
     // I should check out the timing diagram properly next time - no need to be accurate with the numbers since its better if it is a bit over
     // advice given (ty sir allen): there is just one part where there is a max, but everything else has a minimum. recall that there is a slope in actual application
     reg done; // done signal needed to know if the initialization is complete
     always@(posedge clk or negedge nrst)begin
         if(!nrst) begin
-            RS_init <= 0;
-            //RW_init <= 0;
-            E_init <= 0;
             data_bits <= 4'b0000;
-            done <= 0;
-            counter <= 0;
-            E_count <= 0;
+            RS_init <= 1'b0;
+//            rw <= 1'b0;
+            E_init <= 1'b0;
+            counter <= 28'b0000000000000000000000000000;
+            done <= 1'b0;
+            E_count <= 28'b0000000000000000000000000000;
         end else begin
             if(!done) begin // if not done, or if done == 0 
                 if(counter < 10_000_000) begin // wait 100 ms, do not start counting immediately (i think this was the start up problem before)
