@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Maria Louise Quitoriano
-// Testbench for send_4bit_nibble - 4-bit Initialization for Dot Matrix LCD
+// Testbench for send_4bit_nibble_2 - 4-bit Initialization for Dot Matrix LCD
 //////////////////////////////////////////////////////////////////////////////////
 
 module send_4bit_nibble_2_tb();
@@ -11,23 +11,17 @@ module send_4bit_nibble_2_tb();
     reg nrst;
 
     // Outputs
-    wire RS;
-    wire E;
-    wire DB7;
-    wire DB6;
-    wire DB5;
-    wire DB4;
+    wire RS_init;
+    wire E_init;
+    wire [3:0] data_bits;
 
     // Instantiate the Unit Under Test (UUT)
     send_4bit_nibble_2 uut (
         .clk(clk),
         .nrst(nrst),
-        .RS(RS),
-        .E(E),
-        .DB7(DB7),
-        .DB6(DB6),
-        .DB5(DB5),
-        .DB4(DB4)
+        .RS_init(RS_init),
+        .E_init(E_init),
+        .data_bits(data_bits)
     );
 
     // Clock generation
@@ -54,8 +48,8 @@ module send_4bit_nibble_2_tb();
 
     // Monitor signal changes
     initial begin
-        $display("Time\tclk\tnrst\tRS\tE\tDB7 DB6 DB5 DB4");
-        $monitor("%0t\t%b\t%b\t%b\t%b\t%b   %b   %b   %b", $time, clk, nrst, RS, E, DB7, DB6, DB5, DB4);
+        $display("Time\tclk\tnrst\tRS_init\tE_init\tdata_bits");
+        $monitor("%0t\t%b\t%b\t%b\t%b\t%04b", $time, clk, nrst, RS_init, E_init, data_bits);
     end
 
 endmodule
