@@ -355,5 +355,3 @@ module LCD_init(
         end
     end
 endmodule
-marie.v
-31 KB
